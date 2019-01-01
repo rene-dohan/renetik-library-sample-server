@@ -14,12 +14,12 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @RunWith(SpringRunner::class)
 @WebMvcTest(GreetingController::class)
+@WithMockUser(value = "username")
 class GreetingControllerTest {
 
     @Autowired
     private val mvc: MockMvc? = null
 
-    @WithMockUser(value = "username")
     @Test
     fun testGreeting() {
         mvc?.perform(MockMvcRequestBuilders.get("/api/greeting"))?.andExpect(status().isOk)
