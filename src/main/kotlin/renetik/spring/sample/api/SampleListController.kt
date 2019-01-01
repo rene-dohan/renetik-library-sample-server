@@ -25,8 +25,10 @@ class SampleListController {
     }
 
     @GetMapping("/sample-list")
-    fun sampleList(@RequestParam(value = "pageIndex", defaultValue = "0") pageNumber: Int) =
-            ListResponse(true, list)
+    fun sampleList(@RequestParam(value = "pageNumber", defaultValue = "1") pageNumber: Int): ListResponse {
+        val endIndex = pageNumber * 20
+        return ListResponse(true, list.subList(endIndex - 20, endIndex))
+    }
 
 
 }
