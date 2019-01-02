@@ -14,11 +14,10 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager
 class WebSecurityConfig : WebSecurityConfigurerAdapter() {
     @Bean
     public override fun userDetailsService(): UserDetailsService {
-        val user = User.withDefaultPasswordEncoder()
+        return InMemoryUserDetailsManager(User.withDefaultPasswordEncoder()
                 .username("username")
                 .password("password")
                 .roles("USER")
-                .build()
-        return InMemoryUserDetailsManager(user)
+                .build())
     }
 }

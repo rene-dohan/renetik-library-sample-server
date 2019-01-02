@@ -1,11 +1,11 @@
 package renetik.spring.sample.api
 
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.CacheControl.maxAge
+import org.springframework.http.ResponseEntity
+import org.springframework.http.ResponseEntity.ok
+import org.springframework.web.bind.annotation.*
 import renetik.spring.sample.webServerBaseURL
-
+import java.util.concurrent.TimeUnit.MINUTES
 
 data class ListResponse(val success: Boolean, val list: List<ListItem>)
 data class ListItem(val id: Long, val image: String, val name: String, val description: String)
@@ -14,21 +14,18 @@ data class ListItem(val id: Long, val image: String, val name: String, val descr
 @RequestMapping("/api")
 class SampleListController {
 
-    val list by lazy {
-        mutableListOf<ListItem>().apply {
-            var imageNumber = 1
-            for (number in 1..500L) {
-                add(ListItem(number, "$webServerBaseURL/images/flowers/flower$imageNumber.jpg", "Name $number", "Description $number"))
-                if (++imageNumber == 5) imageNumber = 1
-            }
-        }
-    }
-
     @GetMapping("/sample-list")
-    fun sampleList(@RequestParam(value = "pageNumber", defaultValue = "1") pageNumber: Int): ListResponse {
+    fun sampleList(@RequestParam(value = "pageNumber", defaultValue = "1") pageNumber: Int): ResponseEntity<Any> {
         val endIndex = pageNumber * 20
-        return ListResponse(true, list.subList(endIndex - 20, endIndex))
+        return cached(ListResponse(true, model.list.subList(endIndex - 20, endIndex)))
     }
 
+    @PostMapping("/sample-list/add")
+    fun sampleList(@RequestBody item: ListItem): Response {
+        model.list.add(0, item)
+        return Response(true)
+    }
+
+    private fun cached(data: Any) = ok().cacheControl(maxAge(4, MINUTES)).body(data)
 
 }
