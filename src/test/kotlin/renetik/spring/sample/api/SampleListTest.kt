@@ -1,6 +1,7 @@
 package renetik.spring.sample.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.hamcrest.Matchers.containsString
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,34 +33,62 @@ class SampleListControllerTest {
 
     @Test
     fun testSampleListPage3() {
-        mvc?.perform(get("/api/sample-list").with(csrf()).param("pageNumber", "3"))
+        mvc?.perform(get("/api/sampleList").with(csrf()).param("pageNumber", "3"))
                 ?.andExpect(status().isOk)
                 ?.andExpect(jsonPath("$.success").value(true))
                 ?.andExpect(jsonPath("$.list[0].id").value("41"))
                 ?.andExpect(header().string("Cache-Control", "max-age=240"))
-        //                ?.andDo(print())
+                ?.andDo(print())
     }
 
     @Test
     fun testSampleListAdd() {
-        val jsonString = asJsonString(ListItem(890890, "new image", "new name", "new description"))
-        mvc?.perform(post("/api/sample-list/add").with(csrf())
-                .content(jsonString).contentType(APPLICATION_JSON))
+        val listItem = ListItem(890890, "new image", "new name", "new description")
+        addItemToList(listItem)
+        getSampleListAndCheckIfFirstListItemNameIs(listItem.name)
+    }
+
+    @Test
+    fun testSampleListDeleteWrongId() {
+        val itemId = "6786786"
+        mvc?.perform(post("/api/sampleList/delete").with(csrf()).param("id", itemId))
+                ?.andExpect(status().isOk)
+                ?.andExpect(jsonPath("$.success").value(true))
+                ?.andExpect(jsonPath("$.message").value(containsString("id:$itemId")))
+                ?.andExpect(MockMvcResultMatchers.header().string("Pragma", "no-cache"))
+                ?.andDo(print())
+    }
+
+    @Test
+    fun testSampleListDelete() {
+        getSampleListAndCheckIfFirstListItemNameIs("Name 1")
+        val listItem = ListItem(890890, "new image", "new name", "new description")
+        addItemToList(listItem)
+        getSampleListAndCheckIfFirstListItemNameIs(listItem.name)
+        mvc?.perform(post("/api/sampleList/delete").with(csrf()).param("id", "${listItem.id}"))
                 ?.andExpect(status().isOk)
                 ?.andExpect(jsonPath("$.success").value(true))
                 ?.andExpect(jsonPath("$.message").doesNotExist())
                 ?.andExpect(MockMvcResultMatchers.header().string("Pragma", "no-cache"))
-//                ?.andDo(print())
-        getSampleListAndCheckIfFirstListItemNameIs("new name")
+                ?.andDo(print())
+        getSampleListAndCheckIfFirstListItemNameIs("Name 1")
     }
 
-    private fun getSampleListAndCheckIfFirstListItemNameIs(name: String) {
-        mvc?.perform(get("/api/sample-list").with(csrf()))
+    private fun addItemToList(listItem: ListItem) =
+        mvc?.perform(post("/api/sampleList/add").with(csrf())
+                .content(asJsonString(listItem)).contentType(APPLICATION_JSON))
+                ?.andExpect(status().isOk)
+                ?.andExpect(jsonPath("$.success").value(true))
+                ?.andExpect(jsonPath("$.message").doesNotExist())
+                ?.andExpect(header().string("Pragma", "no-cache"))
+                ?.andDo(print())
+
+    private fun getSampleListAndCheckIfFirstListItemNameIs(name: String) =
+        mvc?.perform(get("/api/sampleList").with(csrf()))
                 ?.andExpect(status().isOk)
                 ?.andExpect(jsonPath("$.success").value(true))
                 ?.andExpect(jsonPath("$.list[0].name").value(name))
-        //                ?.andDo(print())
-    }
+                ?.andDo(print())
 
     @After
     fun cleanup() {
@@ -67,7 +96,4 @@ class SampleListControllerTest {
     }
 }
 
-fun asJsonString(obj: Any): String {
-    return ObjectMapper().writeValueAsString(obj)
-//    return Gson().toJson(obj)
-}
+fun asJsonString(obj: Any): String = ObjectMapper().writeValueAsString(obj)

@@ -14,6 +14,5 @@ class GreetingController {
 
     @GetMapping("/greeting")
     fun greeting(@RequestParam(value = "name", defaultValue = "World") name: String) =
-            Response(true, "Hello, $name, counter: ${counter.incrementAndGet()}")
-
+            restOperation { Response(true, "Hello, $name, counter: ${counter.incrementAndGet()}") }
 }
