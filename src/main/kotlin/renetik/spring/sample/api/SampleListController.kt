@@ -19,13 +19,13 @@ class SampleListController {
         cached(ListResponse(true, model.list.subList(endIndex - 20, endIndex)))
     }
 
-    @PostMapping("/sampleList/add")
+    @PostMapping("/sampleListAdd")
     fun add(@RequestBody item: ListItem) = restOperation {
         model.list.add(0, item)
         Response(true)
     }
 
-    @PostMapping("/sampleList/delete")
+    @PostMapping("/sampleListDelete")
     fun delete(@RequestParam(value = "id") id: Long) = restOperation {
         val removed = model.list.removeIf { it.id == id }
         Response(true, if (!removed) "Item with id:$id not found" else null)
