@@ -11,8 +11,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 @RunWith(SpringRunner::class)
 @WebMvcTest(GreetingController::class)
@@ -27,8 +26,18 @@ class GreetingControllerTest {
         mvc?.perform(MockMvcRequestBuilders.get("/api/greeting"))?.andExpect(status().isOk)
                 ?.andExpect(jsonPath("$.success").value(true))
                 ?.andExpect(jsonPath("$.message").value(startsWith("Hello, World")))
-                ?.andExpect(MockMvcResultMatchers.header().string("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate"))
-                ?.andExpect(MockMvcResultMatchers.header().string("Pragma", "no-cache"))
+                ?.andExpect(header().string("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate"))
+                ?.andExpect(header().string("Pragma", "no-cache"))
+                ?.andDo(print())
+    }
+
+    @Test
+    fun testPing() {
+        mvc?.perform(MockMvcRequestBuilders.get("/api/ping"))?.andExpect(status().isOk)
+                ?.andExpect(jsonPath("$.success").value(true))
+                ?.andExpect(jsonPath("$.message").doesNotExist())
+                ?.andExpect(header().string("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate"))
+                ?.andExpect(header().string("Pragma", "no-cache"))
                 ?.andDo(print())
     }
 }

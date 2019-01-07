@@ -1,13 +1,20 @@
 package renetik.spring.sample.api
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.http.CacheControl.maxAge
 import org.springframework.http.ResponseEntity
 import org.springframework.http.ResponseEntity.ok
 import org.springframework.web.bind.annotation.*
 import java.util.concurrent.TimeUnit.MINUTES
 
-data class ListResponse(val success: Boolean, val list: List<ListItem>)
-data class ListItem(val id: Long, val image: String, val name: String, val description: String)
+
+data class ListItem(@JsonProperty("id") val id: Long,
+                    @JsonProperty("image") val image: String,
+                    @JsonProperty("name") val name: String,
+                    @JsonProperty("description") val description: String)
+
+data class ListItemAdd(@JsonProperty("name") val name: String,
+                       @JsonProperty("description") val description: String)
 
 @RestController
 @RequestMapping("/api")
@@ -19,10 +26,13 @@ class SampleListController {
         cached(ListResponse(true, model.list.subList(endIndex - 20, endIndex)))
     }
 
+    data class ListItemResponse(@JsonProperty("success") val success: Boolean,
+                                @JsonProperty("value") val value: ListItem)
+
     @PostMapping("/sampleList/add")
-    fun add(@RequestBody item: ListItem) = restOperation {
-        model.list.add(0, item)
-        Response(true)
+    fun add(@RequestBody item: ListItemAdd) = restOperation {
+        val addedItem = model.addListItem(item.name, item.description)
+        ListItemResponse(true, addedItem)
     }
 
     @PostMapping("/sampleList/delete")
