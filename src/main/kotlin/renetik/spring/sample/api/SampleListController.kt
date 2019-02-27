@@ -40,7 +40,5 @@ class SampleListController {
         val removed = model.list.removeIf { it.id == id }
         Response(true, if (!removed) "Item with id:$id not found" else null)
     }
-
-    private fun cached(data: Any): ResponseEntity<Any> = ok().cacheControl(maxAge(4, MINUTES)).body(data)
 }
 
